@@ -26,6 +26,7 @@ UI documentation for the Syntheia dashboard: the web app where customers manage 
 | `docs/ui/help-and-support.md` | In-app chat, help center, status page |
 | `docs/ui/feature-availability.md` | Which UI controls appear on which plan and for which role |
 | `docs/ui/internal/admin-console.md` | Internal admin console used by support agents |
+| `eval/test-questions.md` | Test questions for the chatbot, with expected answers (**not indexed**) |
 
 ## Recommended index globs
 
