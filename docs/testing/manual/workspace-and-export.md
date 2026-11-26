@@ -45,7 +45,7 @@ Covers workspace creation and regions, **Settings → Workspace → Export**, an
 **Steps:**
 1. Open **Settings → Workspace**.
 2. Look for a way to edit the region.
-3. Upgrade is not needed; send a direct request to set the region to `eu-central`.
+3. Send a direct request to set the region to `eu-central`.
 
 **Expected result:** The region is shown as read-only text with the note that it is fixed at creation. The direct request is refused with `ERR_VALIDATION`. The workspace stays in `us-east`.
 
