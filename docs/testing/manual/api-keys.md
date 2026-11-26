@@ -212,4 +212,17 @@ Covers **Settings → API keys** and the key behaviour seen through the REST API
 
 **Priority:** Medium
 
+## TC-KEY-018: Changes made with a key are listed under that key in the audit log
+
+**Preconditions:** Pro account. A key with `members:write`. Signed in as an Admin.
+
+**Steps:**
+1. With the key, invite `new.member@example.com` through the API.
+2. Go to **Settings → Audit log** and set the **Actor** filter to the key.
+3. Revoke the key and repeat step 2.
+
+**Expected result:** The filter lists a `member.invited` event whose actor is the key ID (for example `key_5T9W3E7Y`), not a user. After the revoke the event is still listed; revoking a key does not remove its history.
+
+**Priority:** Medium
+
 Last reviewed: 2026-11-26

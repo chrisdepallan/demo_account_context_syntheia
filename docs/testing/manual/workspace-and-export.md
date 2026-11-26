@@ -224,4 +224,17 @@ Covers workspace creation and regions, **Settings → Workspace → Export**, an
 
 **Priority:** Medium
 
+## TC-WS-019: Editing is refused while the account is read-only
+
+**Preconditions:** Paid account in `read_only` (day 14 of a failed payment). Signed in as a Member.
+
+**Steps:**
+1. Open a project and read a file.
+2. Edit and save the file.
+3. Upload a new file.
+
+**Expected result:** Step 1 works; users can still log in and read. Steps 2 and 3 are refused with `ERR_ACCOUNT_READ_ONLY` and a notice to contact the Owner or a Billing admin. No data is changed or deleted.
+
+**Priority:** High
+
 Last reviewed: 2026-11-26

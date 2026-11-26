@@ -101,16 +101,9 @@ def test_enforce_needs_an_enabled_connection(clock, ids, audit):
     make_connection(service)
     with pytest.raises(ConflictError):
         service.enforce(WS, "usr_OWNER001", "acc_TEST0001")
-    service = enabled_service(clock, IdsCopy(ids), audit)
+    service = enabled_service(clock, ids, audit)
     assert service.enforce(WS, "usr_OWNER001", "acc_TEST0001").enforced
     assert audit.types()[-1] == "sso.enforced"
-
-
-class IdsCopy:
-    """Wraps the shared generator so a second service can reuse it."""
-
-    def __init__(self, ids) -> None:
-        self.new = ids.new
 
 
 @pytest.mark.parametrize("email, role, password_allowed", [
