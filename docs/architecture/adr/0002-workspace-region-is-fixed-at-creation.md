@@ -23,7 +23,7 @@ A workspace's region is chosen when the workspace is created and **cannot be cha
 - The region is one of `us-east`, `eu-central` or `ap-south`. The default is `us-east`.
 - The plan limits the choice: `us-east` on all plans, `eu-central` on Business and Enterprise, `ap-south` on Enterprise only. Choosing a region the plan does not include returns `ERR_PLAN_REQUIRED`.
 - There is no update operation for the region, in the dashboard, the API or the admin console. Support cannot change it either.
-- To move, the customer exports the workspace from **Settings → Workspace → Export**, creates a new workspace in the other region, and imports the data there.
+- To move, the customer exports the workspace from **Settings → Workspace → Export**, creates a new workspace in the other region, and adds the exported data to it.
 - A later plan downgrade does not move or remove an existing workspace. It only stops new workspaces from being created in a region the lower plan does not include.
 - A database failover promotes a standby replica inside the same region. Content never leaves its region because of a failure.
 

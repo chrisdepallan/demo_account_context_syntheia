@@ -160,11 +160,11 @@ class PasswordResetManager:
         self._tokens[self._hash(token)] = ResetToken(self._hash(token), user_id, expires)
         return token
 
-    def redeem(self, token: str) -> str:
-        """Mark ``token`` used and return its user ID.
+    def peek(self, token: str) -> str:
+        """Return the user ID of a usable token without consuming it.
 
         Raises ValidationError when the token is unknown, already used or
-        older than 60 minutes.
+        60 minutes old or older.
         """
         record = self._tokens.get(self._hash(token))
         if record is None:
@@ -173,5 +173,10 @@ class PasswordResetManager:
             raise ValidationError("Reset link has already been used", reason="used")
         if self._clock.now() >= record.expires_at:
             raise ValidationError("Reset link has expired", reason="expired")
-        record.used_at = self._clock.now()
         return record.user_id
+
+    def redeem(self, token: str) -> str:
+        """Mark ``token`` used (it works only once) and return its user ID."""
+        user_id = self.peek(token)
+        self._tokens[self._hash(token)].used_at = self._clock.now()
+        return user_id

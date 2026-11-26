@@ -137,6 +137,9 @@ class SsoService:
             raise NotFoundError("Workspace has no SSO connection", workspace_id=workspace_id)
         return self._by_workspace[workspace_id]
 
+    def connection_or_none(self, workspace_id: str) -> SsoConnection | None:
+        return self._by_workspace.get(workspace_id)
+
     def verify_domain(self, workspace_id: str, txt_records: list[str]) -> SsoConnection:
         """Mark the domain verified when its DNS TXT records include our token."""
         connection = self.get(workspace_id)

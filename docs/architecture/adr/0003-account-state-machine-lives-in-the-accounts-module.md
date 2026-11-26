@@ -37,7 +37,7 @@ The dependency goes one way: `billing` imports `accounts`; `accounts` never impo
 
 ### Keep the state in the billing package
 
-Most transitions (four of the ten) are caused by payments, so billing could own the field.
+Most transitions are caused by payments, so billing could own the field.
 
 Rejected because closure, restore, deletion and trial expiry are not billing events, and Free accounts have a state but nothing to bill. The accounts package would have to import billing just to close an account, creating a circular dependency between the two most-changed packages.
 
