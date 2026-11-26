@@ -160,9 +160,13 @@ class BillingService:
         method = add_payment_method(self.processor, self.ids, self.clock, account_id,
                                     method_type, plan, acct.country, interval, total, brand)
         line = InvoiceLine(f"{plan.value} plan, {interval.value}", seats, subs.seat_price_for(sub))
-        old_plan = acct.subscription.plan
+        old_plan, old_method = acct.subscription.plan, acct.payment_method
         acct.payment_method = method
-        result = self._collect(acct, [line], interval, must_succeed=True)
+        try:
+            result = self._collect(acct, [line], interval, must_succeed=True)
+        except Exception:
+            acct.payment_method = old_method   # nothing changes when the charge fails
+            raise
         acct.subscription = sub
         self._audit("payment_method.updated", actor_id, account_id, type=method.type.value)
         self._audit("plan.changed", actor_id, account_id, old=old_plan.value, new=plan.value)
@@ -228,6 +232,8 @@ class BillingService:
         acct = self._account(account_id)
         sub, old_plan = acct.subscription, acct.subscription.plan
         credit = sub.pending_credit
+        if acct.unpaid_invoice_id is not None:   # dunning decides what happens next
+            return None
         if not subs.roll_period(sub, self.clock.now()):
             return None
         if sub.plan is not old_plan:
@@ -314,6 +320,8 @@ class BillingService:
         method = acct.payment_method
         if method is None:
             raise ValidationError("add a payment method first")
+        if acct.unpaid_invoice_id is not None:
+            raise ConflictError("pay the open balance before making further charges")
         total = sum((line.amount for line in lines), Money.zero(lines[0].unit_price.currency))
         by_invoice = method.type is PaymentMethodType.INVOICE
         if must_succeed and not by_invoice and total.cents > 0:
