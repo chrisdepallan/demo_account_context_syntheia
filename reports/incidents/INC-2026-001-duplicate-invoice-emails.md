@@ -66,6 +66,7 @@ Step 1 was not affected. Its batches were smaller and stayed under the 30-second
 ## Why was it not caught earlier?
 
 - The tests for billing contacts in 2026.1 covered a provider that answers quickly and a provider that rejects the send. They did not cover a provider that accepts the send but answers late.
+- The test run at the code freeze on 2026-01-13 wrote the gap down: "the invoice email has no protection against being sent twice if the notification queue retries a send". It was accepted as a risk and not treated as a blocker. See `reports/test-runs/2026-01-13-release-2026.1.md`.
 - The retry logic was older than billing contacts. It was written when a notification had one small send step, so a late answer was rare.
 - There was no alert on "same template, same recipient, same object sent more than once".
 - The provider's slow responses did not count as errors, so the email error-rate alert stayed green.
@@ -91,7 +92,8 @@ Step 1 was not affected. Its batches were smaller and stayed under the 30-second
 | Notification sends carry an idempotency key built from template + recipient + object ID. A send with a key that was already accepted is skipped. | Platform team | 2026-03-03 | Done | 2026.2 |
 | Add an automated test for "provider accepts the send but answers after the timeout". | Platform team | 2026-03-03 | Done | 2026.2 |
 | Turn retries back on for the billing-contact step once the idempotency key is live. | Platform team | 2026-03-04 | Done | 2026.2 |
-| Alert when the same template, recipient and object ID are queued more than once in 24 hours. | Platform team | 2026-03-03 | Done | 2026.2 |
+| Two alerts on the outbox: `outbox-duplicates-blocked` (more than 100 duplicate sends refused in 10 minutes) and `outbox-duplicate-sent` (two sends with the same key both recorded as delivered). | Platform team | 2026-03-03 | Done | 2026.2 |
+| Write the runbook `docs/runbooks/duplicate-notifications.md`, including how to pause one template without pausing the whole outbox. | Platform team | 2026-03-03 | Done | 2026.2 |
 | Add a saved support reply for duplicate notification emails. | Support Tools team | 2026-02-18 | Done | Not tied to a release |
 
 The first row is the follow-up listed in `docs/reference/release-and-incident-index.md`.
@@ -108,7 +110,8 @@ This applies to all 14 email templates, not only `invoice_ready`.
 
 ## What is related?
 
-- Runbook: none is specific to this incident. The fix removed the failure mode, so no manual procedure was needed.
+- Runbook: `docs/runbooks/duplicate-notifications.md`
+- Test run at the code freeze of 2026.1: `reports/test-runs/2026-01-13-release-2026.1.md`
 - Code module: `src/acme_cloud/notifications/outbox.py`
 - Release that introduced billing contacts: `reports/releases/2026.1.md`
 - Release that shipped the fix: `reports/releases/2026.2.md`

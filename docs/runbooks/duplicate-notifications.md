@@ -24,6 +24,8 @@ Some emails are meant to arrive more than once. Check this list before treating 
 | `invoice_ready` | One per invoice. A seat change in the middle of a period creates its own invoice, so two invoices in one day are possible |
 | Any template | The Owner who is also a billing contact with the same address gets one copy; with a different address they get one copy at each address |
 
+Intended repeats are not blocked by the idempotency check, because each occasion gets its own object ID. For example, the second `payment_failed` email for an invoice uses an object ID such as `INV-2026-000007:2`.
+
 A real duplicate has the same template, the same recipient address and the same object (the same invoice ID, export ID and so on), and the copies arrive minutes apart, not days apart.
 
 ## How do I confirm a duplicate?

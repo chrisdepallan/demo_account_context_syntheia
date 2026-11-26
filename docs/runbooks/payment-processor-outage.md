@@ -11,7 +11,7 @@ This runbook was written after INC-2026-002 (2026-03-19, P1, 47 minutes), when t
 - Several accounts in different regions become `past_due` within a few minutes of each other.
 - Support sees a burst of tickets about `payment_failed` emails from customers whose cards are valid.
 
-A **processor error** is a timeout or a server error from the processor. A **decline** is the processor answering normally and saying that the bank refused the charge. Only processor errors point to an outage. Declines are the customer's problem and always count for dunning.
+A **processor error** is a timeout or a server error from the processor. A **decline** is the processor answering normally and saying that the bank refused the charge. Only processor errors point to an outage. Declines are the customer's problem and always count for dunning. In the code (`src/acme_cloud/billing/dunning.py`) a charge that hits a processor error has the outcome `unavailable`: it is not counted as a failure, sends no email and changes no state.
 
 ## How do I confirm it is the processor and not us?
 

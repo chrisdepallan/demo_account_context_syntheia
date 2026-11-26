@@ -104,7 +104,8 @@ There was no check for "the processor is down" and no fallback.
 |--------|-------------|----------|--------|------------|
 | Processor outages are detected and do not count as dunning failures. Charges are held and tried again after recovery. | Billing team | 2026-04-14 | Done | 2026.3 |
 | Write the runbook `docs/runbooks/payment-processor-outage.md`. | Billing team | 2026-04-14 | Done | 2026.3 |
-| Add a switch that pauses the renewal and dunning jobs without a deploy. | Billing team | 2026-04-14 | Done | 2026.3 |
+| Outage mode can also be turned on and off by hand in the admin console (**Declare processor outage**, **End processor outage**), without a deploy. | Billing team | 2026-04-14 | Done | 2026.3 |
+| Add an **Outage review** screen that lists accounts whose dunning was affected and reverses it with one action. | Billing team | 2026-04-14 | Done | 2026.3 |
 | Add automated tests for processor timeouts and server errors in renewals and in each dunning retry. | Billing team | 2026-04-14 | Done | 2026.3 |
 | Add support to the P1 paging list so that a reply text is ready with the status page post. | Platform team | 2026-03-27 | Done | Not tied to a release |
 | Review a second payment processor as a fallback. | Billing team | 2026-06-30 | Closed, not planned | Not tied to a release |
@@ -113,10 +114,15 @@ The first two rows are the follow-up listed in `docs/reference/release-and-incid
 
 ## How does outage detection work since 2026.3?
 
-- A processor answer is put into one of two groups: **decline** (the card was refused) or **unavailable** (timeout or server error).
-- An unavailable answer does not change the account state, does not use a dunning retry and does not send `payment_failed`.
-- When 10 unavailable answers in a row are seen within 2 minutes, the billing module marks the processor as down. Automatic charges are held and tried again when a test call succeeds.
-- Payments made in the dashboard show a message that asks the user to try again later.
+- A processor answer is put into one of two groups. A **decline** means the processor answered normally and the bank refused the charge. A **processor error** is a timeout or a server error.
+- The alert `payments-processor-errors` fires when more than 25% of charge attempts in a 5-minute window end in a processor error, with at least 20 attempts in the window. Outage mode turns on with the alert.
+- In outage mode a charge that fails with a processor error is held and tried again every 15 minutes. It does not change the account state, does not use a dunning retry and does not send `payment_failed`. Dunning retries that fall inside the outage are postponed.
+- Declines are handled normally, also during an outage.
+- Payments made in the dashboard show "Payments are temporarily unavailable. Please try again later."
+- Outage mode turns off when the processor error rate stays below 5% for 10 minutes. Held charges are sent within 15 minutes and postponed retries run within 1 hour.
+- Up to 5 minutes can pass before the alert fires. Charges that fail in that gap are listed on the **Outage review** screen and reversed there.
+
+The release carried 8 new automated tests and 1 manual case (`TC-BILL-025`) for this behaviour. See `reports/test-runs/2026-04-07-release-2026.3.md`.
 
 ## What is related?
 

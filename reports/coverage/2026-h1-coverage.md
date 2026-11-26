@@ -41,7 +41,7 @@ This gap mattered. INC-2026-004 on 2026-07-22 was caused by exactly the untested
 
 ## Why did `auth` miss its target?
 
-Release 2026.3 added passkeys (WebAuthn) as an MFA method. Part of the new code could not run on the CI runner until the runner image got a virtual authenticator on 2026-04-21, and two tests were still skipped at the end of June.
+Release 2026.3 added passkeys (WebAuthn) as an MFA method. Part of the new code could not run on the CI runner until the runner image got a virtual authenticator on 2026-04-21. The two passkey tests that had been skipped at the 2026.3 freeze ran from that date, but few further tests were written for the sign-in path.
 
 - Passkey registration was covered. Passkey sign-in with user verification was covered only in part.
 - The rule that hides SMS for Admins and Owners on Business and Enterprise was covered on the server side.
@@ -81,7 +81,7 @@ Overall line coverage rose by 1.3 percentage points in six months, from 88.4% to
 | Gap | Risk | Plan | Owner | Target |
 |-----|------|------|-------|--------|
 | Export worker failure paths are untested | A stuck export is not noticed | Tests for a stopped worker and a lost lease; an upper time limit for exports | Accounts team | Release 2026.6 |
-| Two passkey tests are skipped | A sign-in bug could ship | Run them on the updated CI image; cover removal of the last passkey | Identity team | Release 2026.6 |
+| Passkey sign-in has few tests | A sign-in bug could ship | Cover sign-in with user verification and removal of the last passkey | Identity team | Release 2026.6 |
 | SAML refusal reasons are covered only for clock skew | Wrong error shown to Admins | One test per refusal reason, including an expired certificate | Identity team | Release 2026.7 |
 | UPI and bank transfers are tested by hand | Payment bugs found late | Local fakes for UPI, ACH and SEPA | Billing team | End of 2026 |
 | Branch coverage of `workspaces` is 72.5% | Error paths are not exercised | Review each `except` and each early return in the export code | Accounts team | Release 2026.6 |

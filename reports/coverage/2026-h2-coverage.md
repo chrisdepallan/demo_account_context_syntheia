@@ -49,7 +49,7 @@ Eight packages improved and one got worse. The largest gain was `workspaces`, up
 - A `failed` export does not block a new export for the same workspace.
 - The package went from 41 to 48 tests, and the export worker module went from 61.3% to 89.5% line coverage.
 
-**`auth`: 88.9% to 91.2%.** The Identity team removed the two skipped passkey tests from the skip list on the updated CI image, and added tests for each reason a SAML assertion can be refused. OIDC, added in release 2026.8, arrived with its tests: the package went from 73 to 88 tests while it grew by 220 lines.
+**`auth`: 88.9% to 91.2%.** The Identity team added tests for passkey sign-in with user verification and for removal of the last passkey, and one test for each reason a SAML assertion can be refused. OIDC, added in release 2026.8, arrived with its tests: the package went from 73 to 88 tests while it grew by 220 lines.
 
 Both packages met their targets from release 2026.6 onwards and stayed above them at every later freeze.
 
@@ -91,7 +91,7 @@ The two least-covered modules are both part of webhook delivery. The export work
 | Plan item from the first-half report | Status on 2026-11-03 |
 |--------------------------------------|----------------------|
 | Export worker failure tests and an upper time limit | Done in release 2026.6 |
-| Run the two skipped passkey tests | Done in release 2026.6 |
+| More tests for passkey sign-in | Done in release 2026.6 |
 | One test per SAML refusal reason | Done in release 2026.7 |
 | Local fakes for UPI, ACH and SEPA | Not done; UPI fake in progress, bank transfers not started |
 | Review error paths in the export code | Done; branch coverage of `workspaces` rose from 72.5% to 82.8% |

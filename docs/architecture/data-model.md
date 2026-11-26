@@ -104,12 +104,12 @@ An invitation ID starts with lowercase `inv_`; an invoice ID starts with upperca
 
 **PaymentMethod**
 
-- Only an opaque processor token such as `pm_9XK2M4QH7T`, the method type (card, PayPal, UPI, ACH, SEPA, invoice) and the date it was added.
+- Only an opaque processor token such as `pm_9XK2M4QH7T`, the method type (card, PayPal, UPI, ACH, SEPA, invoice), the card brand for cards (Visa, Mastercard, Amex or Discover) and the date it was added.
 - Card numbers are never stored, logged or shown. See `adr/0004-store-payment-methods-as-processor-tokens-only.md`.
 
 **Refund**
 
-- ID, invoice ID, amount, reason, ticket ID, approver role, status (`pending`, `succeeded`, `failed`).
+- ID, invoice ID, amount, kind (cancellation, duplicate charge, billing error or goodwill), reason, ticket ID, approver role, status (`pending`, `succeeded`, `failed`).
 - The sum of all refunds on an invoice can never exceed the invoice's paid amount.
 
 ## What is stored for authentication and API access?

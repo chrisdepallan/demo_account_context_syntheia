@@ -357,8 +357,10 @@ class BillingService:
         if self.notifier is None:
             return
         to = acct.billing_emails + (acct.profile.contacts if contacts else [])
+        invoice_id = object_id.split(":")[0] if object_id.startswith("INV-") else None
         for key in templates:
-            self.notifier.send(key, to, object_id=object_id, account_id=acct.account_id)
+            self.notifier.send(key, to, object_id=object_id, account_id=acct.account_id,
+                               invoice_id=invoice_id)
 
     def _audit(self, event_type: str, actor_id: str, account_id: str, **metadata: Any) -> None:
         if self.audit is not None:

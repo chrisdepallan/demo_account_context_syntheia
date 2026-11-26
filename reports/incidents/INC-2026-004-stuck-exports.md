@@ -39,7 +39,7 @@ All times are UTC on 2026-07-22.
 | Time | Event |
 |------|-------|
 | 03:20 | Routine restart of the export workers in `us-east` and `eu-central`. 41 exports are in progress and lose their job lease. |
-| 03:30 | The leases expire. The 41 jobs have the status `running` and no owner. Nothing alerts. |
+| 03:25 | The leases have not been renewed for 5 minutes. The 41 jobs have the status `running` and no worker. Nothing returns them to the queue and nothing alerts. |
 | 08:45 | First support ticket: an export has been "running" for more than 5 hours. |
 | 09:30 | Third ticket. A support agent checks the admin console and sees the status `running` for all three. |
 | 10:05 | The support team lead escalates to the Accounts team. |
@@ -55,17 +55,18 @@ All times are UTC on 2026-07-22.
 
 The export worker lost its job lease after the 2026.5 rewrite, and there was no timeout.
 
-Since 2026.5 an export is a queued job (ADR 0007). A worker takes a job, sets the export to `running` and holds a lease of 10 minutes that it renews while it works. The code is in `src/acme_cloud/workspaces/export.py`.
+Since 2026.5 an export is a queued job (ADR 0007). A worker takes a job, sets the export to `running` and holds a lease on it, which it renews every 60 seconds. A job whose lease is not renewed for 5 minutes is meant to go back to the queue. The code is in `src/acme_cloud/workspaces/export.py`.
 
 Two things were missing:
 
-1. **No recovery of lost leases.** When a worker stops, its leases expire. The queue was meant to give those jobs to another worker. It only looked at jobs in `queued`, so an export in `running` with an expired lease was never handed out again.
+1. **No recovery of lost leases.** When a worker stops, it no longer renews its leases. The queue was meant to give those jobs to another worker. It only looked at jobs in `queued`, so an export in `running` with a lost lease was never handed out again.
 2. **No timeout.** Nothing limited how long an export could stay in `running`. The status could stay wrong forever, and the rule "one running export per workspace" then blocked every new export.
 
 ## Why was it not caught earlier?
 
-- Two automated tests for export timing were unstable before the 2026.5 release and were set aside (quarantined). One of them covered a worker that stops in the middle of a job. See the test summary in `reports/releases/2026.5.md`.
-- The manual tests for 2026.5 restarted a worker only when the queue was empty.
+- The test run at the code freeze on 2026-06-30 saw the gap. Its notes say: "an export has no upper time limit; if a worker dies, the job may stay `running`". The gap was accepted, with the condition that a time limit is added in 2026.6. See `reports/test-runs/2026-06-30-release-2026.5.md`.
+- No automated test stopped a worker in the middle of a job. The behaviour "another worker takes over" did not work yet, so there was nothing to test against.
+- The manual cases for 2026.5 (`TC-WS-011` to `TC-WS-016`) covered start, status, a refused second export, the email and the expired link. None stopped a worker.
 - Between 2026-07-07 and 2026-07-22 the workers were restarted twice, both times with no export in progress.
 - No alert watched the age of exports in `running` or the number of jobs without a lease.
 
@@ -82,7 +83,7 @@ Two things were missing:
 - From first ticket to escalation took 80 minutes. An export that runs for hours is normal for large workspaces, so the first tickets did not look urgent.
 - Support had no way to cancel or restart an export from the admin console.
 - There was no runbook. The diagnosis started from the code.
-- The quarantined tests were listed in the release report, but no one owned bringing them back.
+- The gap was known at the code freeze and accepted until 2026.6, six weeks later. In those six weeks it had no ticket, no owner and no alert to cover it.
 
 ## What are the action items?
 
@@ -90,20 +91,22 @@ Two things were missing:
 |--------|-------------|----------|--------|------------|
 | Exports running longer than 24 hours are marked `failed`. The workspace can then start a new export. | Accounts team | 2026-08-18 | Done | 2026.6 |
 | Write the runbook `docs/runbooks/stuck-export.md`. | Accounts team | 2026-08-18 | Done | 2026.6 |
-| Hand out a `running` export again when its lease has expired. | Accounts team | 2026-08-18 | Done | 2026.6 |
-| Repair the two quarantined export tests and make them required again. | Accounts team | 2026-08-18 | Done | 2026.6 |
-| Alert when an export has had no lease for more than 15 minutes. | Platform team | 2026-08-18 | Done | 2026.6 |
+| Return a `running` export to the queue when its lease has not been renewed for 5 minutes, so that another worker takes it over. | Accounts team | 2026-08-18 | Done | 2026.6 |
+| Alert `export-running-too-long`: page the on-call engineer when any export has been `running` for more than 6 hours. | Platform team | 2026-08-18 | Done | 2026.6 |
+| Show the worker and the last lease renewal of each export in the admin console. Add **Requeue** and **Mark failed** actions for the on-call engineer. | Support Tools team, Accounts team | 2026-08-18 | Done | 2026.6 |
+| Add automated tests for the time limit and for a worker that stops in the middle of a job (5 unit tests, 3 integration tests), and the manual cases `TC-WS-017` and `TC-WS-018`. | Accounts team | 2026-08-11 | Done | 2026.6 |
 | Until 2026.6 ships: wait for running exports to finish before a worker restart, and check for old `running` exports every morning. | Platform team, Accounts team | 2026-07-23 | Done, ended on 2026-08-19 | Not tied to a release |
-| Every quarantined test gets an owning team and a date in the release report. | All teams, tracked by the release manager | 2026-08-18 | Done | 2026.6 |
+| Test process: a gap that is accepted at a code freeze gets a ticket with an owner and a target release before the decision is signed. New background jobs need a "worker dies in the middle" test before the freeze. | All teams, tracked by the release manager | 2026-08-11 | Done | Not tied to a release |
 
 The first two rows are the follow-up listed in `docs/reference/release-and-incident-index.md`.
 
 ## What does a customer see for a failed export since 2026.6?
 
-- An export that runs longer than **24 hours** gets the status `failed`.
+- An export that runs longer than **24 hours** gets the status `failed`. The 24 hours count from the moment the export became `running`; time in `queued` is not included. At exactly 24 hours it is still `running`.
+- The requester is told when an export fails.
 - The export statuses are `queued`, `running`, `ready`, `expired` and `failed`.
 - A `failed` export does not block a new one. The Owner or an Admin starts it again under **Settings → Workspace → Export**.
-- With lease recovery in place, the 24-hour rule is the last safety net. A lost lease is normally repaired within 15 minutes and the customer sees no failure.
+- The 24-hour rule is the last safety net. A lost lease is normally noticed after 5 minutes, another worker takes the job, and the customer sees no failure.
 
 ## What is related?
 
@@ -111,6 +114,7 @@ The first two rows are the follow-up listed in `docs/reference/release-and-incid
 - Code module: `src/acme_cloud/workspaces/export.py`
 - Release that introduced the queued export: `reports/releases/2026.5.md`
 - Release that shipped the fix: `reports/releases/2026.6.md`
+- Test runs: `reports/test-runs/2026-06-30-release-2026.5.md`, `reports/test-runs/2026-08-11-release-2026.6.md`
 - Architecture decision: ADR 0007 "Exports run as queued jobs" in `docs/architecture/adr/`
 - Index: `docs/reference/release-and-incident-index.md`
 - UI doc: `docs/ui/settings-workspace.md`

@@ -47,8 +47,8 @@ Use this runbook when a refund request is above your own approval limit, falls o
 1. Make sure the request comes from the Owner or a Billing admin. Other roles cannot see billing; ask them to bring in someone who can.
 2. Open or find the ticket (ID such as `SUP-58213`).
 3. Select **Admin console → Account → Invoices → Refund**. Choose full or partial, enter the amount, and put the ticket ID in the reason field.
-4. Choose the type: **Policy**, **Billing error** or **Goodwill**. For goodwill, the screen shows the date of the account's last goodwill refund. If it is less than 12 months ago, the refund cannot be made.
-5. If the amount is within your limit and the type is not goodwill, select **Issue refund**. The refund (ID such as `rf_8M2K4Q9X7T`) shows as `pending`.
+4. Choose the kind: **Cancellation** (annual plan within 30 days), **Duplicate charge**, **Billing error** or **Goodwill**. For goodwill, the screen shows the date of the account's last goodwill refund. If it is less than 12 months ago, the refund cannot be made.
+5. If the amount is within your limit and the kind is not goodwill, select **Issue refund**. The refund (ID such as `rf_8M2K4Q9X7T`) shows as `pending`.
 6. If it is above your limit, or is goodwill, select **Request approval**. Add two or three sentences: what happened, which rule applies, and what you recommend. The request goes to the support team lead, or to the billing manager for amounts over $5,000.
 7. Tell the customer the request is being reviewed and when they will hear back.
 8. When it is approved, the refund is issued automatically and shows as `pending`. When it is refused, the approver's reason appears on the ticket; pass it on in plain words.
@@ -58,7 +58,7 @@ Use this runbook when a refund request is above your own approval limit, falls o
 
 A `failed` refund means the processor could not send the money back to the original payment method, for example because a card was closed.
 
-1. Check **Admin console → Operations → Payments** for a processor outage. If outage mode is on, wait for it to end and select **Retry refund**.
+1. Check **Admin console → Operations → Payments** for a processor outage. A refund sent during an outage normally stays `pending` and is sent again by itself. If one was marked `failed` just before outage mode started, wait for the outage to end and select **Retry refund**.
 2. If there is no outage, ask the Owner or a Billing admin to update the method in **Settings → Billing → Payment method → Update**, then select **Retry refund** once.
 3. If it fails a second time, do not retry again. Escalate to the Billing team, which arranges payment by bank transfer.
 4. Never ask for card or bank account details in the ticket. The Billing team collects what it needs through the secure billing form.
@@ -95,7 +95,7 @@ Do not promise a refund before it is approved, and do not give a date earlier th
 ## What happens afterwards?
 
 1. Check that the audit log has a `refund.issued` event, and that customers with webhooks received `refund.succeeded`.
-2. Close the ticket with the refund ID, the amount, the type and the approver's role.
+2. Close the ticket with the refund ID, the amount, the kind and the approver's role.
 3. For a billing error, add the invoice ID to the Billing team's error list so that the cause is fixed.
 
 ## Related links

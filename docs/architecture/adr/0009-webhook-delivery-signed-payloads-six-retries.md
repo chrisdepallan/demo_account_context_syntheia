@@ -25,8 +25,9 @@ Acme Cloud sends each event as an HTTP POST with a **signed payload**, retries f
 **Signing**
 
 - Each webhook endpoint (ID such as `wh_8C2V6B4N`) has its own signing secret, shown once when the endpoint is created.
-- Every delivery carries an `Acme-Signature` header: an HMAC-SHA256 of the payload, computed with that endpoint's secret.
-- The receiver computes the same HMAC and rejects the request if the values differ.
+- Every delivery carries an `Acme-Signature` header of the form `t=<unix time>,v1=<hex digest>`.
+- The digest is an HMAC-SHA256, computed with that endpoint's secret, over the text `<unix time>.<raw body>`.
+- The receiver computes the same HMAC and rejects the request if the values differ. It should also reject a signature whose time is more than 300 seconds (5 minutes) old, so that a captured request cannot be replayed later.
 
 **Delivery and retries**
 
@@ -42,7 +43,7 @@ Acme Cloud sends each event as an HTTP POST with a **signed payload**, retries f
 **Events and limits**
 
 - The events are `account.state_changed`, `member.invited`, `member.removed`, `invoice.paid`, `invoice.payment_failed`, `refund.succeeded`, `api_key.created`, `api_key.revoked`, `export.ready` and `sso.enforced`.
-- Endpoints allowed by plan: Free 0, Starter 2, Pro 5, Business 20, Enterprise 50.
+- Endpoints per workspace by plan: Free 0, Starter 2, Pro 5, Business 20, Enterprise 50.
 
 The code is in `src/acme_cloud/api_keys/webhooks.py`.
 

@@ -85,18 +85,19 @@ There were two parts:
 
 | Action | Owning team | Due date | Status | Shipped in |
 |--------|-------------|----------|--------|------------|
-| Clock drift alert: page the on-call engineer when any node is more than 30 seconds away from the reference time. | Platform team | 2026-05-26 | Done | 2026.4 |
-| Write the runbook `docs/runbooks/sso-login-failures.md`. Step 1 is "group failures by node"; step 2 is "check node time". | Identity team | 2026-05-26 | Done | 2026.4 |
-| Write the real reason for a rejected assertion to the auth log (signature, validity window, audience). The customer message is unchanged. | Identity team | 2026-05-26 | Done | 2026.4 |
-| Make the time sync service restart by itself on every node and take a node out of rotation while its drift is above 30 seconds. | Platform team | 2026-05-26 | Done | 2026.4 |
-| Alert on the SSO failure rate per node, not only per region. | Identity team | 2026-05-26 | Done | 2026.4 |
+| Clock drift alert `auth-clock-drift`: page the on-call engineer when any auth node is more than 30 seconds away from the reference time. | Platform team | 2026-05-26 | Done | 2026.4 |
+| Write the runbook `docs/runbooks/sso-login-failures.md`. Its first question is "one workspace or many?"; for many, the first check is the clock drift of the auth nodes. | Identity team | 2026-05-26 | Done | 2026.4 |
+| Show a separate login message for a time problem: "SAML assertion expired or not yet valid". "SAML response signature invalid" is shown only for a real signature problem. | Identity team | 2026-05-26 | Done | 2026.4 |
+| Make the time sync service restart by itself on every node. | Platform team | 2026-05-26 | Done | 2026.4 |
+| Show the clock drift of every auth node, and the auth node that handled each SSO error, in the admin console. Add **Drain** and **Return to pool** actions for the on-call engineer. | Platform team, Support Tools team | 2026-05-26 | Done | 2026.4 |
+| Escalation rule for support: 5 or more workspaces with SSO errors within 10 minutes go to the on-call engineer at once. | Support Tools team | 2026-05-13 | Done | Not tied to a release |
 | Add a note to the support reply for "signature invalid": check the status page and the node logs before advising a certificate upload. | Support Tools team | 2026-05-13 | Done | Not tied to a release |
 
 The first two rows are the follow-up listed in `docs/reference/release-and-incident-index.md`.
 
 ## Why is the alert at 30 seconds when the allowed skew is 3 minutes?
 
-The 3-minute skew is the limit at which customers are affected. The alert has to fire long before that. At 30 seconds the on-call engineer is paged while every login still works, and the node is taken out of rotation automatically. The allowed skew for customers stays at 3 minutes; it was not changed.
+The 3-minute skew is the limit at which customers are affected. The alert has to fire long before that. At 30 seconds the on-call engineer is paged while every login still works, and drains the node with one action in the admin console. The allowed skew for customers stays at 3 minutes. It was not raised, because the limit protects against replayed assertions.
 
 ## What is related?
 

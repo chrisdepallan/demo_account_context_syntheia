@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import base64
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -13,8 +12,8 @@ from acme_cloud.common.enums import Plan, Role
 from acme_cloud.common.errors import NotFoundError, PermissionDeniedError, ValidationError
 
 USER = "usr_TEST0001"
-#: The shared secret used by the RFC 6238 test vectors, base32 encoded.
-RFC_SECRET = base64.b32encode(b"12345678901234567890").decode("ascii")
+#: The shared secret of the RFC 6238 Appendix B test vectors, base32 encoded.
+RFC_SECRET = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"
 
 
 @pytest.mark.parametrize("plan, role, sms_offered", [
