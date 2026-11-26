@@ -109,17 +109,25 @@ class ApiKeyService:
             raise LimitExceededError("A workspace can have up to 25 active API keys",
                                      limit=MAX_ACTIVE_KEYS_PER_WORKSPACE)
 
+        key, full_key = self._issue(workspace_id, account_id, actor_id, name, chosen,
+                                    expires_in_days, environment)
+        self._audit_event("api_key.created", actor_id, key, scopes=sorted(chosen))
+        return key, full_key
+
+    def _issue(self, workspace_id: str, account_id: str, actor_id: str, name: str,
+               scopes: frozenset[str], expires_in_days: int | None,
+               environment: KeyEnvironment) -> tuple[ApiKey, str]:
+        """Generate key material and store only its hash and last 4 characters."""
         now = self._clock.now()
         full_key = generate_key(environment)
         key = ApiKey(
             id=self._ids.new("key"), workspace_id=workspace_id, account_id=account_id,
             name=name, prefix=environment.prefix, key_hash=hash_key(full_key),
-            last4=full_key[-LAST4_LENGTH:], scopes=chosen, created_by=actor_id, created_at=now,
+            last4=full_key[-LAST4_LENGTH:], scopes=scopes, created_by=actor_id, created_at=now,
             expires_at=None if expires_in_days is None else now + timedelta(days=expires_in_days),
         )
         self._keys[key.id] = key
         self._by_hash[key.key_hash] = key.id
-        self._audit_event("api_key.created", actor_id, key, scopes=sorted(chosen))
         return key, full_key
 
     # -- authenticate ----------------------------------------------------
@@ -150,6 +158,8 @@ class ApiKeyService:
         """Issue a replacement with the same name, scopes and expiry length.
 
         The old key keeps working for 24 hours. Returns ``(new key, full key)``.
+        The old key no longer counts towards the 25-key limit, so rotation
+        also works when the workspace is at the limit.
         """
         self._check_access(plan, actor_role)
         old = self.get(key_id)
@@ -160,14 +170,8 @@ class ApiKeyService:
         if days is None and require_key_expiry:
             raise ValidationError("Your workspace requires keys to expire",
                                   policy="require_key_expiry")
-        mark_rotated(old, old, now)  # frees the old key's slot before creating
-        try:
-            new, full_key = self.create_key(
-                old.workspace_id, old.account_id, plan, actor_id, actor_role, old.name,
-                old.scopes, days, old.environment, require_key_expiry)
-        except Exception:
-            old.rotated_at = old.grace_ends_at = old.replaced_by = None
-            raise
+        new, full_key = self._issue(old.workspace_id, old.account_id, actor_id, old.name,
+                                    old.scopes, days, old.environment)
         mark_rotated(old, new, now)
         self._audit_event("api_key.rotated", actor_id, old, new_key_id=new.id)
         return new, full_key
