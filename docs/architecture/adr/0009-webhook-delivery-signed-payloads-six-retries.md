@@ -42,7 +42,7 @@ Acme Cloud sends each event as an HTTP POST with a **signed payload**, retries f
 **Events and limits**
 
 - The events are `account.state_changed`, `member.invited`, `member.removed`, `invoice.paid`, `invoice.payment_failed`, `refund.succeeded`, `api_key.created`, `api_key.revoked`, `export.ready` and `sso.enforced`.
-- Endpoints per workspace by plan: Free 0, Starter 2, Pro 5, Business 20, Enterprise 50.
+- Endpoints allowed by plan: Free 0, Starter 2, Pro 5, Business 20, Enterprise 50.
 
 The code is in `src/acme_cloud/api_keys/webhooks.py`.
 

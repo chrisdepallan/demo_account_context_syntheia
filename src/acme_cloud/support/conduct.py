@@ -39,10 +39,15 @@ REDACTED = "[removed by support]"
 SENSITIVE_ACTIONS = ("mfa_reset", "owner_change")
 EMAIL_EVIDENCE = "email"
 
+#: Words after "password is" that describe a problem instead of giving the
+#: password ("my password is not working"); these are not flagged.
+_NOT_A_SECRET = "not|no|still|being|expired|wrong|incorrect|invalid|rejected|locked|too"
+
 # Each pattern has a "lead" group (kept) and a "secret" group (removed).
 _PATTERNS: dict[str, re.Pattern[str]] = {
     FLAG_PASSWORD: re.compile(
-        r"(?P<lead>\bpass(?:word|code|phrase)\s*(?:is|was|:|=)\s*)(?P<secret>\S+)", re.IGNORECASE),
+        r"(?P<lead>\bpass(?:word|code|phrase)\s*(?:is|was|:|=)\s*)"
+        rf"(?!(?:{_NOT_A_SECRET})\b)(?P<secret>\S+)", re.IGNORECASE),
     FLAG_CARD_NUMBER: re.compile(
         r"(?P<lead>\bcard\s*(?:number|no\.?|#)\s*(?:is|:|=)?\s*)(?P<secret>\d[\d \-]*\d|\d)",
         re.IGNORECASE),
