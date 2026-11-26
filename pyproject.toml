@@ -1,0 +1,16 @@
+[project]
+name = "acme-cloud-sample"
+version = "2026.8"
+description = "Sample account, billing, auth and support modules for the fictional Acme Cloud product."
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q --import-mode=importlib"
+markers = [
+    "integration: tests that cross more than one package",
+]
